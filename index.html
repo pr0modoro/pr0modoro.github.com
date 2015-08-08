@@ -1,0 +1,88 @@
+<!doctype html> <html class="no-js"> <head> <meta charset="utf-8"> <title>pr0duktiv sein mit pr0modoro</title> <meta name="description" content=""> <meta name="viewport" content="width=device-width"> <!-- Place favicon.ico and apple-touch-icon.png in the root directory --> <link rel="stylesheet" href="styles/vendor.20833e0b.css"> <link rel="stylesheet" href="styles/main.ad3ca29c.css">  <body ng-app="promodoroApp"> <!--[if lt IE 7]>
+      <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]--> <!-- Add your site or application content here --> <div ng-view nc-cloak style="width:100%; height:100%"> </div> <script id="worker" type="javascript/worker">// This script won't be parsed by JS engines because its type is javascript/worker.
+    /* global self */
+    /* global postMessage */
+    'use strict';
+
+    // store the timer so we can clear it
+    var timer = null;
+    var time = null;
+
+
+
+    /**
+     * if a timer interval is set clear it and set to null
+     */
+    function clearTimer() {
+
+        if (!timer) {
+            return;
+        }
+
+        clearInterval(timer);
+        timer = null;
+    }
+    /**
+     * start the web worker timer for a specific time, after every second
+     * the tick message is sent to the window causing a callback to execute,
+     * when the time reaches 0 the complete message is sent back to the
+     * window
+     *
+     * if a time is not provided as a parameter it will use the existing time,
+     * this is used when a timer is paused and it is started. it simply resumes
+     * the timer with the remaining time
+     *
+     * @param  {Number} value : time to set timer to
+     */
+    function startTimer(value) {
+
+        var SECOND = 1000;
+
+        time = value || time;
+
+        timer = setInterval(function() {
+
+            postMessage({
+                message: 'tick',
+                time: time
+            });
+
+            if (time === 0) {
+
+                postMessage({
+                    message: 'complete'
+                });
+
+                clearTimer();
+            }
+
+            time--;
+
+        }, SECOND);
+
+        // return that the timer has started
+        postMessage({
+            started: !!timer
+        });
+    }
+    self.onmessage = function(e) {
+        switch (e.data.command) {
+            case 'start':
+                startTimer(e.data.time);
+                break;
+            case 'clear':
+                clearTimer();
+                break;
+        }
+    };
+
+    // Rest of your worker code goes here.</script> <!-- Google Analytics: change UA-XXXXX-X to be your site's ID --> <script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+       m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+       })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+       ga('create', 'UA-XXXXX-X');
+       ga('send', 'pageview');</script> <!--[if lt IE 9]>
+    <script src="scripts/oldieshim.bfe322b1.js"></script>
+    <![endif]--> <script src="scripts/vendor.f30ee9ff.js"></script> <script src="scripts/scripts.bab3dd26.js"></script>  
